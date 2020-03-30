@@ -5,6 +5,35 @@
 # g_cost is the cost of path from start to the current node
 # h_cost is the cost of path from current node to the end node (heuristic cost, calculated by Pythagoras Theorem)
 # Priority must be given to node with lowest h_cost if f_cost are equal
+import pygame
+import sys
+
+pygame.init()
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+MAUVE = (224, 176, 255)
+RED = (255,0,0)  # colour tuples to be used later in the program
+clock = pygame.time.Clock()
+
+maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+dim = len(maze)
+width = 32 * dim
+display = pygame.display.set_mode((width, width+32))
+display.fill(WHITE)  # fill the display with WHITE color
+
+
 class Node():
 
     def __init__(self, parent=None, position=None):
@@ -19,7 +48,7 @@ class Node():
         return self.position == other.position
 
 
-def astar(maze, start, end):
+def astar(start, end):
 
     # Create start and end node
     start_node = Node(None, start)
@@ -44,7 +73,7 @@ def astar(maze, start, end):
             if item.f_cost < current_node.f_cost:
                 current_node = item
                 current_index = index
-
+                
         # Pop current off open list, add to closed list
         open_list.pop(current_index)
         closed_list.append(current_node)
@@ -100,25 +129,51 @@ def astar(maze, start, end):
             # Add the child to the open list
             open_list.append(child)
 
+def windowLoop(maze,start,end):
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()     
+                sys.exit(0)
+            if event.type == pygame.KEYDOWN:
+                pygame.quit()
+                sys.exit(0)
+            for i in range(0, width, 32):
+                pygame.draw.line(display, BLACK, (i, 0), (i, width))  # drawing row lines 32px apart
+            for j in range(0, width, 32):
+                # drawing column lines 32px apart
+                pygame.draw.line(display, BLACK, (0, j), (width, j))
+            pygame.display.update()
+
+            for i in range(0, width, 32):
+                # to deal with internal PyGame events in the event queue which cause the
+                # system to freeze
+                pygame.event.pump()
+                for j in range(0, width, 32):
+                    if maze[int(i/32)][int(j/32)] == 1:
+                        pygame.draw.rect(display, BLACK, (j, i, 32, 32))
+            pygame.display.update()
+
+            path = astar(start,end)
+
+            for index, coordinates in enumerate(path):
+                if index!=0 or index!=len(path)-1:
+                    pygame.event.pump()
+                    pygame.draw.rect(display , RED , (coordinates[1]*32, coordinates[0]*32 , 32 , 32))
+                    pygame.display.update()
+                else:
+                    pygame.event.pump()
+                    pygame.draw.rect(display , GREEN , (coordinates[1]*32, coordinates[0]*32 , 32 , 32))
+                    pygame.display.update()
+
 
 def main():
-
-    maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
     start = (0, 0)
     end = (7, 6)
 
-    path = astar(maze, start, end)
-    print(path)
+    windowLoop(maze,start,end)
 
 
 if __name__ == '__main__':
